@@ -25,7 +25,7 @@ repositories {
 apply plugin: 'kotlin'
 apply plugin: 'org.jetbrains.intellij'
 
-group = 'cn.yiiguxing.plugin.colorswatches'
+group = 'cn.yiiguxing.plugin.md.colorswatches'
 version = "${version}${buildNumber ? '-' + buildNumber : ''}"
 
 intellij {

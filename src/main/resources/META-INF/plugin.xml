@@ -1,5 +1,5 @@
 <idea-plugin>
-    <id>cn.yiiguxing.plugin.colorswatches</id>
+    <id>cn.yiiguxing.plugin.md.colorswatches</id>
     <name>Material Design Color Swatches</name>
     <version>1.0</version>
     <vendor email="yii.guxing@gmail.com" url="https://github.com/YiiGuxing">Yii.Guxing</vendor>
