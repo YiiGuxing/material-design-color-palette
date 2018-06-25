@@ -18,6 +18,9 @@
     <depends>com.intellij.modules.lang</depends>
 
     <actions>
+        <action class="cn.yiiguxing.plugin.md.colorswatches.ShowMaterialPaletteDialogAction"
+                id="$ShowMaterialPaletteDialogAction"
+                text="Show Material Palette Dialog"/>
     </actions>
 
 </idea-plugin>
