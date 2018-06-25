@@ -23,6 +23,7 @@ class ColorBox(val color: Color) : JComponent() {
     }
 
     init {
+        isOpaque = false
         isDoubleBuffered = true
         addMouseListener(object : MouseAdapter() {
             override fun mouseEntered(e: MouseEvent) {
