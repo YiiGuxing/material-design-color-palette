@@ -1,19 +1,32 @@
 package cn.yiiguxing.plugin.md.colorswatches
 
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.JBMenuItem
+import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.ui.JBColor
+import com.intellij.ui.PopupMenuListenerAdapter
 import com.intellij.ui.border.CustomLineBorder
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridConstraints.*
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import java.awt.Color
+import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Insets
+import java.awt.datatransfer.StringSelection
+import java.awt.event.ActionEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JLabel
+import javax.swing.JPanel
 import javax.swing.border.LineBorder
+import javax.swing.event.PopupMenuEvent
 
 /**
  * MaterialPaletteDialog
@@ -27,11 +40,15 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
 
     init {
         title = "Material Palette"
+        setResizable(false)
+
         form.init()
         init()
     }
 
     override fun createCenterPanel(): JComponent = form.rootPanel
+
+    override fun createActions(): Array<Action> = arrayOf(okAction, ResetAction())
 
     private fun MaterialPaletteForm.init() {
         colorPalettePanel.border = LineBorder(BORDER_COLOR)
@@ -45,6 +62,7 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
     }
 
     private fun MaterialPaletteForm.initColorPalette() {
+        contentPanel.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
         MATERIAL_COLOR_PALETTE.entries.forEachIndexed { row, (name, colors) ->
             val nameCons = GridConstraints(row, 0, 1, 1,
                     ANCHOR_EAST, FILL_NONE, SIZEPOLICY_FIXED, SIZEPOLICY_FIXED,
@@ -90,7 +108,40 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         lightColorLabel.setCopyable(true)
         darkColorLabel.setCopyable(true)
 
+        primaryPreviewPanel.setCopyAction { group.checkedColor }
+        lightPreviewPanel.setCopyAction { group.checkedColor?.brighten() }
+        darkPreviewPanel.setCopyAction { group.checkedColor?.darken() }
+
         preview(null)
+    }
+
+    private fun JPanel.setCopyAction(getColor: () -> Color?) {
+        fun copyColor() {
+            getColor()?.let {
+                CopyPasteManager.getInstance().setContents(StringSelection(it.hex))
+            }
+        }
+
+        addMouseListener(object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent) {
+                if (e.button == MouseEvent.BUTTON1 && e.clickCount == 1) {
+                    copyColor()
+                }
+            }
+        })
+
+        val copyItem = JBMenuItem("Copy Color", AllIcons.Actions.Copy)
+                .apply {
+                    addActionListener { copyColor() }
+                }
+        componentPopupMenu = JBPopupMenu().apply {
+            add(copyItem)
+            addPopupMenuListener(object : PopupMenuListenerAdapter() {
+                override fun popupMenuWillBecomeVisible(e: PopupMenuEvent) {
+                    copyItem.isEnabled = group.checkedColor != null
+                }
+            })
+        }
     }
 
     private fun MaterialPaletteForm.syncScroll() {
@@ -115,6 +166,11 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
 
         val hasColor = color != null
         val paneBorder = if (hasColor) null else LineBorder(BORDER_COLOR)
+        previewPanel.cursor = if (hasColor) {
+            Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+        } else {
+            Cursor.getDefaultCursor()
+        }
         primaryPreviewPanel.apply {
             border = paneBorder
             isOpaque = hasColor
@@ -132,17 +188,17 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         }
 
         primaryColorLabel.apply {
-            text = color?.hex ?: ""
+            text = color?.let { "#${it.hex}" } ?: ""
             isVisible = hasColor
             foreground = contentColor
         }
         lightColorLabel.apply {
-            text = light?.hex ?: ""
+            text = light?.let { "#${it.hex}" } ?: ""
             isVisible = hasColor
             foreground = lightContentColor
         }
         darkColorLabel.apply {
-            text = dark?.hex ?: ""
+            text = dark?.let { "#${it.hex}" } ?: ""
             isVisible = hasColor
             foreground = darkContentColor
         }
@@ -155,6 +211,12 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         }
         darkPreviewTitle.apply {
             foreground = darkContentColor ?: Color.GRAY
+        }
+    }
+
+    private inner class ResetAction : DialogWrapperAction("Reset") {
+        override fun doAction(e: ActionEvent) {
+            group.checkedBox = null
         }
     }
 

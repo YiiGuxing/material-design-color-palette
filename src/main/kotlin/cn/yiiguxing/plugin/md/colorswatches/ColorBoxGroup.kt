@@ -8,14 +8,14 @@ class ColorBoxGroup(private val onColorChanged: (color: Color?) -> Unit) {
 
     private val boxes = Vector<ColorBox>()
 
-    private var checkedBox: ColorBox? by Delegates.observable(null) { _, oldValue: ColorBox?, newValue: ColorBox? ->
+    var checkedBox: ColorBox? by Delegates.observable(null) { _, oldValue: ColorBox?, newValue: ColorBox? ->
         oldValue?.isChecked = false
         if (oldValue !== newValue) {
             onColorChanged(checkedColor)
         }
     }
 
-    private val checkedColor: Color? get() = checkedBox?.color
+    val checkedColor: Color? get() = checkedBox?.color
 
     private val onBoxCheckedChangedHandler = { colorBox: ColorBox, isChecked: Boolean ->
         if (isChecked) {
