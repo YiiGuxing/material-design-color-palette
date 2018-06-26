@@ -63,7 +63,7 @@ class ColorBox(val color: Color) : JComponent() {
         g.color = color
         when {
             isChecked -> g.fillOval(0, 0, width, height)
-            isHovering -> g.fillRoundRect(0, 0, width, height, width / 10, height / 10)
+            isHovering -> g.fillRoundRect(0, 0, width, height, width / 3, height / 3)
             else -> g.fillRect(0, 0, width, height)
         }
     }
