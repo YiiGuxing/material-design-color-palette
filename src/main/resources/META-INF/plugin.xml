@@ -20,7 +20,9 @@
     <actions>
         <action class="cn.yiiguxing.plugin.md.colorswatches.ShowMaterialPaletteDialogAction"
                 id="$ShowMaterialPaletteDialogAction"
-                text="Show Material Palette Dialog"/>
+                text="Show Material Palette Dialog">
+            <add-to-group group-id="MainToolBar" anchor="last"/>
+        </action>
     </actions>
 
 </idea-plugin>

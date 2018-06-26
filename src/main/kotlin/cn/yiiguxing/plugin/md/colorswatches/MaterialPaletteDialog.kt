@@ -40,6 +40,7 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
 
     init {
         title = "Material Palette"
+        peer.setAppIcons()
         setResizable(false)
 
         form.init()
