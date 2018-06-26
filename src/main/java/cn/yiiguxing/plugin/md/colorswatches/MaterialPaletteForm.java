@@ -21,4 +21,9 @@ public class MaterialPaletteForm {
     public JLabel primaryPreviewTitle;
     public JLabel lightPreviewTitle;
     public JLabel darkPreviewTitle;
+    public JPanel colorPalettePanel;
+    public JPanel headerSpace;
+    public JPanel saturationPanel;
+    public JPanel saturationAPanel;
+    public JPanel previewPanel;
 }

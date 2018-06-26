@@ -2,12 +2,15 @@ package cn.yiiguxing.plugin.md.colorswatches
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.ui.JBColor
+import com.intellij.ui.border.CustomLineBorder
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridConstraints.*
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import java.awt.Color
 import java.awt.Dimension
+import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.border.LineBorder
@@ -24,40 +27,61 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
 
     init {
         title = "Material Palette"
-        form.initPalette()
+        form.init()
         init()
     }
 
     override fun createCenterPanel(): JComponent = form.rootPanel
 
-    private fun MaterialPaletteForm.initPalette() {
+    private fun MaterialPaletteForm.init() {
+        colorPalettePanel.border = LineBorder(BORDER_COLOR)
+        leftScrollPane.border = CustomLineBorder(BORDER_COLOR, Insets(0, 0, 0, 1))
+        contentScrollPane.border = null
+
+        initColorPalette()
+        initHeader()
+        initPreviewComponents()
+        syncScroll()
+    }
+
+    private fun MaterialPaletteForm.initColorPalette() {
         MATERIAL_COLOR_PALETTE.entries.forEachIndexed { row, (name, colors) ->
             val nameCons = GridConstraints(row, 0, 1, 1,
                     ANCHOR_EAST, FILL_NONE, SIZEPOLICY_FIXED, SIZEPOLICY_FIXED,
-                    null, JBDimension(-1, 50), null)
+                    null, JBDimension(-1, COLOR_BOX_SIZE), null)
             namesPanel.add(JLabel(name), nameCons)
 
             colors.forEachIndexed { column, color ->
                 val colorCons = GridConstraints(row, column, 1, 1,
                         ANCHOR_CENTER, FILL_NONE, SIZEPOLICY_FIXED, SIZEPOLICY_FIXED,
-                        null, JBDimension(50, 50), null)
+                        null, JBDimension(COLOR_BOX_SIZE, COLOR_BOX_SIZE), null)
                 val colorBox = ColorBox(color)
                 group.add(colorBox)
                 contentPanel.add(colorBox, colorCons)
             }
         }
+    }
 
-        headerPanel.apply {
+    private fun MaterialPaletteForm.initHeader() {
+        headerSpace.border = CustomLineBorder(BORDER_COLOR, Insets(0, 0, 1, 1))
+        headerPanel.border = CustomLineBorder(BORDER_COLOR, Insets(0, 0, 1, 0))
+
+        saturationPanel.apply {
             for (i in 0 until componentCount) {
-                getComponent(i).preferredSize = JBDimension(50, -1)
+                getComponent(i).preferredSize = JBDimension(COLOR_BOX_SIZE, -1)
             }
         }
+        saturationAPanel.apply {
+            for (i in 0 until componentCount) {
+                getComponent(i).preferredSize = JBDimension(COLOR_BOX_SIZE, -1)
+            }
 
-        syncScroll()
-        initPreviewComponents()
+            border = CustomLineBorder(BORDER_COLOR, Insets(0, 1, 0, 0))
+        }
     }
 
     private fun MaterialPaletteForm.initPreviewComponents() {
+        previewPanel.border = LineBorder(BORDER_COLOR)
         primaryPreviewTitle.apply { font = font.deriveFont(JBUI.scale(14f)) }
         primaryColorLabel.apply {
             setCopyable(true)
@@ -90,7 +114,7 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         val darkContentColor = dark?.contentColor
 
         val hasColor = color != null
-        val paneBorder = if (hasColor) null else LineBorder(Color.GRAY)
+        val paneBorder = if (hasColor) null else LineBorder(BORDER_COLOR)
         primaryPreviewPanel.apply {
             border = paneBorder
             isOpaque = hasColor
@@ -132,5 +156,10 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         darkPreviewTitle.apply {
             foreground = darkContentColor ?: Color.GRAY
         }
+    }
+
+    companion object {
+        private const val COLOR_BOX_SIZE = 35
+        private val BORDER_COLOR = JBColor(0xB3B3B3, 0x232323)
     }
 }
