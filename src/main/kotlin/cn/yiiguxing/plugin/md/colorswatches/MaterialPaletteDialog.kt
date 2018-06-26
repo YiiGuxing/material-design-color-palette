@@ -5,7 +5,9 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridConstraints.*
 import com.intellij.util.ui.JBDimension
+import com.intellij.util.ui.JBUI
 import java.awt.Color
+import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.border.LineBorder
@@ -21,9 +23,12 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
     private val group = ColorBoxGroup { form.preview(it) }
 
     init {
+        title = "Material Palette"
         form.initPalette()
         init()
     }
+
+    override fun createCenterPanel(): JComponent = form.rootPanel
 
     private fun MaterialPaletteForm.initPalette() {
         MATERIAL_COLOR_PALETTE.entries.forEachIndexed { row, (name, colors) ->
@@ -48,10 +53,34 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
             }
         }
 
+        syncScroll()
+        initPreviewComponents()
+    }
+
+    private fun MaterialPaletteForm.initPreviewComponents() {
+        primaryPreviewTitle.apply { font = font.deriveFont(JBUI.scale(14f)) }
+        primaryColorLabel.apply {
+            setCopyable(true)
+            font = font.deriveFont(JBUI.scale(14f))
+        }
+        lightColorLabel.setCopyable(true)
+        darkColorLabel.setCopyable(true)
+
         preview(null)
     }
 
-    override fun createCenterPanel(): JComponent = form.rootPanel
+    private fun MaterialPaletteForm.syncScroll() {
+        leftScrollPane.verticalScrollBar.preferredSize = Dimension(0, 0)
+
+        val namesViewport = leftScrollPane.viewport
+        val colorsViewport = contentScrollPane.viewport
+        namesViewport.apply {
+            addChangeListener { colorsViewport.viewPosition = viewPosition }
+        }
+        colorsViewport.apply {
+            addChangeListener { namesViewport.viewPosition = viewPosition }
+        }
+    }
 
     private fun MaterialPaletteForm.preview(color: Color?) {
         val light = color?.brighten()
@@ -79,17 +108,17 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         }
 
         primaryColorLabel.apply {
-            text = color?.hex
+            text = color?.hex ?: ""
             isVisible = hasColor
             foreground = contentColor
         }
         lightColorLabel.apply {
-            text = light?.hex
+            text = light?.hex ?: ""
             isVisible = hasColor
             foreground = lightContentColor
         }
         darkColorLabel.apply {
-            text = dark?.hex
+            text = dark?.hex ?: ""
             isVisible = hasColor
             foreground = darkContentColor
         }
