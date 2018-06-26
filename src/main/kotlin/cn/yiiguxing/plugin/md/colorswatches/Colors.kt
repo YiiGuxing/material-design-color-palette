@@ -102,3 +102,8 @@ fun Color.brighten(amount: Float = 1f): Color {
 fun Color.darken(amount: Float = 1f): Color = brighten(-amount)
 
 val Color.contentColor: Color get() = if (toLab()[0] > 50) Color.BLACK else Color.WHITE
+
+private val hexChars = charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
+
+val Color.hex: String
+    get() = String(CharArray(7) { if (it == 0) '#' else hexChars[(rgb shr (20 - 4 * (it - 1))) and 0xF] })
