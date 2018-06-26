@@ -36,8 +36,11 @@ class ColorBox(val color: Color) : JComponent() {
                 repaint()
             }
 
-            override fun mouseClicked(e: MouseEvent) {
-                if (e.button == MouseEvent.BUTTON1 && !isChecked) {
+            override fun mouseReleased(e: MouseEvent) {
+                if (e.button == MouseEvent.BUTTON1
+                        && !isChecked
+                        && e.x in 0..width
+                        && e.y in 0..height) {
                     isChecked = true
                 }
             }
