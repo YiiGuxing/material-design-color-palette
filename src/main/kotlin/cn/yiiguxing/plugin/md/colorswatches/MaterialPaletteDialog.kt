@@ -35,15 +35,6 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         val darkContentColor = dark?.contentColor
 
         val hasColor = color != null
-        if (hasColor) {
-            primaryPreviewTitle.foreground = contentColor
-            primaryColorLabel.foreground = contentColor
-            lightPreviewTitle.foreground = lightContentColor
-            lightColorLabel.foreground = lightContentColor
-            darkPreviewTitle.foreground = darkContentColor
-            darkColorLabel.foreground = darkContentColor
-        }
-
         val paneBorder = if (hasColor) null else LineBorder(Color.WHITE)
         primaryPreviewPanel.apply {
             border = paneBorder
@@ -61,12 +52,33 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
             background = dark
         }
 
-        primaryPreviewTitle.isVisible = hasColor
-        lightPreviewTitle.isVisible = hasColor
-        darkPreviewTitle.isVisible = hasColor
-        primaryColorLabel.isVisible = hasColor
-        lightColorLabel.isVisible = hasColor
-        darkColorLabel.isVisible = hasColor
-    }
+        primaryColorLabel.apply {
+            text = color?.hex
+            isVisible = hasColor
+            foreground = contentColor
+        }
+        lightColorLabel.apply {
+            text = light?.hex
+            isVisible = hasColor
+            foreground = lightContentColor
+        }
+        darkColorLabel.apply {
+            text = dark?.hex
+            isVisible = hasColor
+            foreground = darkContentColor
+        }
 
+        primaryPreviewTitle.apply {
+            isVisible = hasColor
+            foreground = contentColor
+        }
+        lightPreviewTitle.apply {
+            isVisible = hasColor
+            foreground = lightContentColor
+        }
+        darkPreviewTitle.apply {
+            isVisible = hasColor
+            foreground = darkContentColor
+        }
+    }
 }
