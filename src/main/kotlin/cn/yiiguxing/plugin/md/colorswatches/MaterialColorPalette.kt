@@ -8,7 +8,7 @@ package cn.yiiguxing.plugin.md.colorswatches
 
 import java.awt.Color
 
-val MATERIAL_COLOR_PALETTE: Map<String, List<Color>> = mapOf(
+val MATERIAL_COLOR_PALETTE: Map<String, List<Color>> = linkedMapOf(
         "Red" to listOf(
                 Color(0xffebee),
                 Color(0xffcdd2),
