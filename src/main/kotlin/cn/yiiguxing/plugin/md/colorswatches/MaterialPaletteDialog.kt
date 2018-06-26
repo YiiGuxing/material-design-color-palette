@@ -2,8 +2,12 @@ package cn.yiiguxing.plugin.md.colorswatches
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.uiDesigner.core.GridConstraints
+import com.intellij.uiDesigner.core.GridConstraints.*
+import com.intellij.util.ui.JBDimension
 import java.awt.Color
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.border.LineBorder
 
 /**
@@ -22,6 +26,28 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
     }
 
     private fun MaterialPaletteForm.initPalette() {
+        MATERIAL_COLOR_PALETTE.entries.forEachIndexed { row, (name, colors) ->
+            val nameCons = GridConstraints(row, 0, 1, 1,
+                    ANCHOR_EAST, FILL_NONE, SIZEPOLICY_FIXED, SIZEPOLICY_FIXED,
+                    null, JBDimension(-1, 50), null)
+            namesPanel.add(JLabel(name), nameCons)
+
+            colors.forEachIndexed { column, color ->
+                val colorCons = GridConstraints(row, column, 1, 1,
+                        ANCHOR_CENTER, FILL_NONE, SIZEPOLICY_FIXED, SIZEPOLICY_FIXED,
+                        null, JBDimension(50, 50), null)
+                val colorBox = ColorBox(color)
+                group.add(colorBox)
+                contentPanel.add(colorBox, colorCons)
+            }
+        }
+
+        headerPanel.apply {
+            for (i in 0 until componentCount) {
+                getComponent(i).preferredSize = JBDimension(50, -1)
+            }
+        }
+
         preview(null)
     }
 
@@ -35,7 +61,7 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         val darkContentColor = dark?.contentColor
 
         val hasColor = color != null
-        val paneBorder = if (hasColor) null else LineBorder(Color.WHITE)
+        val paneBorder = if (hasColor) null else LineBorder(Color.GRAY)
         primaryPreviewPanel.apply {
             border = paneBorder
             isOpaque = hasColor
@@ -69,16 +95,13 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         }
 
         primaryPreviewTitle.apply {
-            isVisible = hasColor
-            foreground = contentColor
+            foreground = contentColor ?: Color.GRAY
         }
         lightPreviewTitle.apply {
-            isVisible = hasColor
-            foreground = lightContentColor
+            foreground = lightContentColor ?: Color.GRAY
         }
         darkPreviewTitle.apply {
-            isVisible = hasColor
-            foreground = darkContentColor
+            foreground = darkContentColor ?: Color.GRAY
         }
     }
 }
