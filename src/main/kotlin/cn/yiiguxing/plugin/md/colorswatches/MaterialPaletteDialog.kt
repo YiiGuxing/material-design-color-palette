@@ -53,7 +53,7 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
 
     private fun MaterialPaletteForm.init() {
         colorPalettePanel.border = LineBorder(BORDER_COLOR)
-        leftScrollPane.border = CustomLineBorder(BORDER_COLOR, Insets(0, 0, 0, 1))
+        leftScrollPane.border = CustomLineBorder(BORDER_COLOR_FIXED, Insets(0, 0, 0, 1))
         contentScrollPane.border = null
 
         initColorPalette()
@@ -82,7 +82,7 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
     }
 
     private fun MaterialPaletteForm.initHeader() {
-        headerSpace.border = CustomLineBorder(BORDER_COLOR, Insets(0, 0, 1, 1))
+        headerSpace.border = CustomLineBorder(BORDER_COLOR, Insets(0, 0, 1, 0))
         headerPanel.border = CustomLineBorder(BORDER_COLOR, Insets(0, 0, 1, 0))
 
         saturationPanel.apply {
@@ -101,10 +101,10 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
 
     private fun MaterialPaletteForm.initPreviewComponents() {
         previewPanel.border = LineBorder(BORDER_COLOR)
-        primaryPreviewTitle.apply { font = font.deriveFont(JBUI.scale(14f)) }
+        primaryPreviewTitle.apply { font = font.deriveFont(JBUI.scale(15f)) }
         primaryColorLabel.apply {
             setCopyable(true)
-            font = font.deriveFont(JBUI.scale(14f))
+            font = font.deriveFont(JBUI.scale(15f))
         }
         lightColorLabel.setCopyable(true)
         darkColorLabel.setCopyable(true)
@@ -224,5 +224,6 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
     companion object {
         private const val COLOR_BOX_SIZE = 35
         private val BORDER_COLOR = JBColor(0xB3B3B3, 0x232323)
+        private val BORDER_COLOR_FIXED = JBColor(0xB3B3B3, 0x000000)
     }
 }
