@@ -1,3 +1,4 @@
+<p align="center"><img src="./icon.svg" width="200" height="200" alt="Material Design Color Palette"></p>
 <h1 align="center">Material Design Color Palette</h1>
 <p align="center">
 <a href="https://plugins.jetbrains.com/plugin/10869-material-design-color-palette"><img src="https://img.shields.io/badge/JetBrainsPlugin-10869-orange.svg?style=flat-square"></a>
@@ -8,4 +9,4 @@
 </p>
 <p align="center">Material Design color palette pluin for IntelliJ based IDEs.</p>
 
-<p align="center"> <img align="center" src="./screenshots/palette.png" alt="screenshots"></p>
+<p align="center"><img src="./screenshots/palette.png" alt="screenshots"></p>
