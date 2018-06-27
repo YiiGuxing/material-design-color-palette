@@ -222,7 +222,7 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
     }
 
     companion object {
-        private const val COLOR_BOX_SIZE = 35
+        private const val COLOR_BOX_SIZE = 40
         private val BORDER_COLOR = JBColor(0xB3B3B3, 0x232323)
         private val BORDER_COLOR_FIXED = JBColor(0xB3B3B3, 0x000000)
     }
