@@ -1,4 +1,4 @@
-package cn.yiiguxing.plugin.md.colorswatches;
+package cn.yiiguxing.plugin.md.palette;
 
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;

@@ -1,4 +1,4 @@
-package cn.yiiguxing.plugin.md.colorswatches
+package cn.yiiguxing.plugin.md.palette
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ide.CopyPasteManager

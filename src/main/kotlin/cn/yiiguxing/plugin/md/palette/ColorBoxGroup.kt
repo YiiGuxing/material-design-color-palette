@@ -1,4 +1,4 @@
-package cn.yiiguxing.plugin.md.colorswatches
+package cn.yiiguxing.plugin.md.palette
 
 import java.awt.Color
 import java.util.*

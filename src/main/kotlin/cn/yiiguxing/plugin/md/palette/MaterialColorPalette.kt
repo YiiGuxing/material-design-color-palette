@@ -4,7 +4,7 @@
  * Created by Yii.Guxing on 2018/06/25
  */
 
-package cn.yiiguxing.plugin.md.colorswatches
+package cn.yiiguxing.plugin.md.palette
 
 import java.awt.Color
 

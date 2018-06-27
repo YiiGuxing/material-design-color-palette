@@ -25,12 +25,12 @@ repositories {
 apply plugin: 'kotlin'
 apply plugin: 'org.jetbrains.intellij'
 
-group = 'cn.yiiguxing.plugin.md.colorswatches'
+group = 'cn.yiiguxing.plugin.md.palette'
 version = "${version}${buildNumber ? '-' + buildNumber : ''}"
 
 intellij {
     version = ideaVersion
-    pluginName = 'Material Design Color Swatches'
+    pluginName = 'Material Design Color Palette'
     downloadSources = Boolean.valueOf(sources)
 }
 

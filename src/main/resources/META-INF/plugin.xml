@@ -1,24 +1,25 @@
-<idea-plugin>
-    <id>cn.yiiguxing.plugin.md.colorswatches</id>
-    <name>Material Design Color Swatches</name>
+<!DOCTYPE idea-plugin PUBLIC "Plugin/DTD" "http://plugins.jetbrains.com/plugin.dtd">
+<idea-plugin url="https://github.com/YiiGuxing/material-design-color-palette">
+    <id>cn.yiiguxing.plugin.md.palette</id>
+    <name>Material Design Color Palette</name>
     <version>1.0</version>
     <vendor email="yii.guxing@gmail.com" url="https://github.com/YiiGuxing">Yii.Guxing</vendor>
 
     <description><![CDATA[
+    <p>Plugin for Material Design color palette.</p>
+    <br/>
+    <p><img src="https://raw.githubusercontent.com/YiiGuxing/material-design-color-palette/master/images/screenshots-palette.png" alt="screenshots-palette.png"/></p>
     ]]></description>
 
     <change-notes><![CDATA[
     ]]></change-notes>
 
-    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+    <!-- http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html -->
     <idea-version since-build="171"/>
-
-    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
-         on how to target different products -->
     <depends>com.intellij.modules.lang</depends>
 
     <actions>
-        <action class="cn.yiiguxing.plugin.md.colorswatches.ShowMaterialPaletteDialogAction"
+        <action class="cn.yiiguxing.plugin.md.palette.ShowMaterialPaletteDialogAction"
                 id="$ShowMaterialPaletteDialogAction"
                 text="Show Material Palette Dialog">
             <add-to-group group-id="MainToolBar" anchor="last"/>
