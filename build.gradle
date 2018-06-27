@@ -44,7 +44,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'material design color palette'
+    baseName = 'material-design-color-palette'
 }
 
 sourceCompatibility = javaVersion
