@@ -1,11 +1,14 @@
 package cn.yiiguxing.plugin.md.palette
 
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupMenuListenerAdapter
 import com.intellij.ui.border.CustomLineBorder
@@ -40,9 +43,10 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
 
     init {
         title = "Material Palette"
-        peer.setAppIcons()
+        isModal = false
         setResizable(false)
 
+        peer.setAppIcons()
         form.init()
         init()
     }
@@ -225,5 +229,28 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         private const val COLOR_BOX_SIZE = 40
         private val BORDER_COLOR = JBColor(0xB3B3B3, 0x232323)
         private val BORDER_COLOR_FIXED = JBColor(0xB3B3B3, 0x000000)
+
+        private val sDialogMap = HashMap<Project?, MaterialPaletteDialog>()
+
+        fun show(project: Project?) {
+            val dialog = synchronized(sDialogMap) {
+                sDialogMap.getOrPut(project) {
+                    MaterialPaletteDialog(project).apply {
+                        Disposer.register(disposable, Disposable {
+                            synchronized(sDialogMap) {
+                                sDialogMap.remove(project)
+                            }
+                        })
+                        project?.let { Disposer.register(it, disposable) }
+                    }
+                }
+            }
+
+            if (!dialog.isShowing) {
+                dialog.show()
+            } else {
+                IdeFocusManager.getInstance(project).requestFocus(dialog.window, true)
+            }
+        }
     }
 }

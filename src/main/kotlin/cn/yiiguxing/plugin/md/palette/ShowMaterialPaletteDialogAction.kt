@@ -13,7 +13,7 @@ import javax.swing.Icon
 class ShowMaterialPaletteDialogAction : AnAction(icon) {
 
     override fun actionPerformed(e: AnActionEvent) {
-        MaterialPaletteDialog(e.project).show()
+        MaterialPaletteDialog.show(e.project)
     }
 
     companion object {
