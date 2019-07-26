@@ -10,3 +10,18 @@
 <p align="center">Material Design color palette pluin for IntelliJ based IDEs.</p>
 
 <p align="center"><img src="./screenshots/palette.png" alt="screenshots"></p>
+
+Usage
+-----
+
+* Click the "show material design palette dialog" button on the toolbar:
+
+  ![toolbar](./screenshots/toolbar.png)
+
+* Double shift and search "show material design palette dialog":
+
+  ![search](./screenshots/search.png)
+
+* Add a keyboard shortcut for the "show material design palette dialog" action:
+
+  ![keymap](./screenshots/keymap.png)
