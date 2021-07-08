@@ -32,6 +32,7 @@ patchPluginXml {
 }
 
 dependencies {
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib"
 }
 
 jar {
