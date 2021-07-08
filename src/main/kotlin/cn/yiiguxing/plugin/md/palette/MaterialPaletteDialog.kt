@@ -69,15 +69,19 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
     private fun MaterialPaletteForm.initColorPalette() {
         contentPanel.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
         MATERIAL_COLOR_PALETTE.entries.forEachIndexed { row, (name, colors) ->
-            val nameCons = GridConstraints(row, 0, 1, 1,
-                    ANCHOR_EAST, FILL_NONE, SIZEPOLICY_FIXED, SIZEPOLICY_FIXED,
-                    null, JBDimension(-1, COLOR_BOX_SIZE), null)
+            val nameCons = GridConstraints(
+                row, 0, 1, 1,
+                ANCHOR_EAST, FILL_NONE, SIZEPOLICY_FIXED, SIZEPOLICY_FIXED,
+                null, JBDimension(-1, COLOR_BOX_SIZE), null
+            )
             namesPanel.add(JLabel(name), nameCons)
 
             colors.forEachIndexed { column, color ->
-                val colorCons = GridConstraints(row, column, 1, 1,
-                        ANCHOR_CENTER, FILL_NONE, SIZEPOLICY_FIXED, SIZEPOLICY_FIXED,
-                        null, JBDimension(COLOR_BOX_SIZE, COLOR_BOX_SIZE), null)
+                val colorCons = GridConstraints(
+                    row, column, 1, 1,
+                    ANCHOR_CENTER, FILL_NONE, SIZEPOLICY_FIXED, SIZEPOLICY_FIXED,
+                    null, JBDimension(COLOR_BOX_SIZE, COLOR_BOX_SIZE), null
+                )
                 val colorBox = ColorBox(color)
                 group.add(colorBox)
                 contentPanel.add(colorBox, colorCons)
@@ -107,11 +111,8 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         previewPanel.border = LineBorder(BORDER_COLOR)
         primaryPreviewTitle.apply { font = font.deriveFont(JBUI.scale(15f)) }
         primaryColorLabel.apply {
-            setCopyable(true)
             font = font.deriveFont(JBUI.scale(15f))
         }
-        lightColorLabel.setCopyable(true)
-        darkColorLabel.setCopyable(true)
 
         primaryPreviewPanel.setCopyAction { group.checkedColor }
         lightPreviewPanel.setCopyAction { group.checkedColor?.brighten() }
@@ -121,9 +122,10 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
     }
 
     private fun JPanel.setCopyAction(getColor: () -> Color?) {
+        toolTipText = "Click to copy color"
         fun copyColor() {
             getColor()?.let {
-                CopyPasteManager.getInstance().setContents(StringSelection(it.hex))
+                CopyPasteManager.getInstance().setContents(StringSelection("#${it.hex}"))
             }
         }
 
@@ -135,15 +137,27 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
             }
         })
 
-        val copyItem = JBMenuItem("Copy Color", AllIcons.Actions.Copy)
-                .apply {
-                    addActionListener { copyColor() }
+        val copyItem = JBMenuItem("Copy as Color Hex", AllIcons.Actions.Copy)
+            .apply {
+                addActionListener { copyColor() }
+            }
+        val copyRGBItem = JBMenuItem("Copy as (R, G, B)", AllIcons.Actions.Copy)
+            .apply {
+                addActionListener {
+                    getColor()?.let {
+                        CopyPasteManager.getInstance()
+                            .setContents(StringSelection("(${it.red}, ${it.green}, ${it.blue})"))
+                    }
                 }
+            }
         componentPopupMenu = JBPopupMenu().apply {
             add(copyItem)
+            add(copyRGBItem)
             addPopupMenuListener(object : PopupMenuListenerAdapter() {
                 override fun popupMenuWillBecomeVisible(e: PopupMenuEvent) {
-                    copyItem.isEnabled = group.checkedColor != null
+                    val color = getColor()
+                    copyItem.isEnabled = color != null
+                    copyRGBItem.isEnabled = color != null
                 }
             })
         }
