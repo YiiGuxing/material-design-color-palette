@@ -6,7 +6,8 @@
 package cn.yiiguxing.plugin.md.palette
 
 import java.awt.Color
-import java.lang.Math.*
+import kotlin.math.pow
+import kotlin.math.roundToInt
 
 
 // LAB CONSTANTS
@@ -26,13 +27,13 @@ private val Int.rgb_xyz: Float
         return if (v <= 0.04045f) {
             v / 12.92f
         } else {
-            pow((v + 0.055) / 1.055, 2.4).toFloat()
+            ((v + 0.055) / 1.055).pow(2.4).toFloat()
         }
     }
 
 private val Float.xyz_lab: Float
     get() = if (this > t3) {
-        pow(this.toDouble(), 1.0 / 3.0).toFloat()
+        this.toDouble().pow(1.0 / 3.0).toFloat()
     } else {
         this / t2 + t0
     }
@@ -46,9 +47,9 @@ private val Float.lab_xyz: Float
 
 private val Float.xyz_rgb: Float
     get() = if (this <= 0.00304) {
-        max(0.0f, min(this * 12.92f, 1.0f))
+        (this * 12.92f).coerceIn(0.0f, 1.0f)
     } else {
-        max(0.0f, min(1.055f * pow(this.toDouble(), 1 / 2.4).toFloat() - 0.055f, 1.0f))
+        (1.055f * this.toDouble().pow(1 / 2.4).toFloat() - 0.055f).coerceIn(0.0f, 1.0f)
     }
 
 private fun Color.toXYZ(): FloatArray {
@@ -107,3 +108,50 @@ private val hexChars = charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', 
 
 val Color.hex: String
     get() = String(CharArray(6) { hexChars[(rgb shr (20 - 4 * it)) and 0xF] })
+
+/**
+ * Convert a Color to it corresponding HSL values.
+ * @return an array containing the 3 HSL values.
+ */
+fun Color.toHSL(): IntArray {
+    //  Get RGB values in the range 0 - 1
+    val rgb = getRGBColorComponents(null)
+    val r = rgb[0]
+    val g = rgb[1]
+    val b = rgb[2]
+
+    //	Minimum and Maximum RGB values are used in the HSL calculations
+    val min = rgb.min()!!
+    val max = rgb.max()!!
+
+    //  Calculate the Hue
+    val h = when (max) {
+        min -> 0f
+        r -> (60 * (g - b) / (max - min) + 360) % 360
+        g -> 60 * (b - r) / (max - min) + 120
+        b -> 60 * (r - g) / (max - min) + 240
+        else -> 0f
+    }
+
+    //  Calculate the Luminance
+    val l = (max + min) / 2
+
+    //  Calculate the Saturation
+    val s = when {
+        max == min -> 0f
+        l <= .5f -> (max - min) / (max + min)
+        else -> (max - min) / (2 - max - min)
+    }
+
+    return intArrayOf(h.roundToInt(), (s * 100).roundToInt(), (l * 100).roundToInt())
+}
+
+fun Color.alphaBlend(background: Color, alpha: Float): Color {
+    require(alpha in 0.0..1.0) { "alpha(0.0 <= alpha <= 1.0): $alpha" }
+
+    val r = (1 - alpha) * background.red + alpha * red
+    val g = (1 - alpha) * background.green + alpha * green
+    val b = (1 - alpha) * background.blue + alpha * blue
+
+    return Color(r.toInt(), g.toInt(), b.toInt())
+}

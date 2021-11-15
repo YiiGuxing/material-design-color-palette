@@ -1,25 +1,29 @@
 package cn.yiiguxing.plugin.md.palette
 
-import com.intellij.icons.AllIcons
-import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.ide.CopyPasteManager
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
+import com.intellij.openapi.ui.MessageType
+import com.intellij.openapi.ui.popup.Balloon
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.ui.popup.JBPopupListener
+import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupMenuListenerAdapter
+import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.border.CustomLineBorder
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridConstraints.*
+import com.intellij.util.Alarm
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
-import java.awt.Color
-import java.awt.Cursor
-import java.awt.Dimension
-import java.awt.Insets
+import java.awt.*
 import java.awt.datatransfer.StringSelection
 import java.awt.event.ActionEvent
 import java.awt.event.MouseAdapter
@@ -38,24 +42,38 @@ import javax.swing.event.PopupMenuEvent
  */
 class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
 
-    private val form = MaterialPaletteForm()
-    private val group = ColorBoxGroup { form.preview(it) }
+    private val ui = MaterialPaletteUI()
+    private val group = ColorBoxGroup { ui.preview(it) }
+
+    private var currentMessageBalloon: Balloon? = null
+    private val alarm: Alarm = Alarm(disposable)
 
     init {
         title = "Material Palette"
         isModal = false
         setResizable(false)
 
-        peer.setAppIcons()
-        form.init()
+        registerShortcuts()
+        ui.init()
         init()
     }
 
-    override fun createCenterPanel(): JComponent = form.rootPanel
+    override fun createSouthAdditionalPanel(): JPanel = ui.messagePanel
+
+    private fun registerShortcuts() {
+        DumbAwareAction.create { copyColor(group.checkedColor, ColorType.HEX) }
+            .registerCustomShortcutSet(CustomShortcutSet.fromString("ctrl 1"), rootPane, disposable)
+        DumbAwareAction.create { copyColor(group.checkedColor?.brighten(), ColorType.HEX) }
+            .registerCustomShortcutSet(CustomShortcutSet.fromString("ctrl 2"), rootPane, disposable)
+        DumbAwareAction.create { copyColor(group.checkedColor?.darken(), ColorType.HEX) }
+            .registerCustomShortcutSet(CustomShortcutSet.fromString("ctrl 3"), rootPane, disposable)
+    }
+
+    override fun createCenterPanel(): JComponent = ui.rootPanel
 
     override fun createActions(): Array<Action> = arrayOf(okAction, ResetAction())
 
-    private fun MaterialPaletteForm.init() {
+    private fun MaterialPaletteUI.init() {
         colorPalettePanel.border = LineBorder(BORDER_COLOR)
         leftScrollPane.border = CustomLineBorder(BORDER_COLOR_FIXED, Insets(0, 0, 0, 1))
         contentScrollPane.border = null
@@ -66,7 +84,7 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         syncScroll()
     }
 
-    private fun MaterialPaletteForm.initColorPalette() {
+    private fun MaterialPaletteUI.initColorPalette() {
         contentPanel.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
         MATERIAL_COLOR_PALETTE.entries.forEachIndexed { row, (name, colors) ->
             val nameCons = GridConstraints(
@@ -89,7 +107,7 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         }
     }
 
-    private fun MaterialPaletteForm.initHeader() {
+    private fun MaterialPaletteUI.initHeader() {
         headerSpace.border = CustomLineBorder(BORDER_COLOR, Insets(0, 0, 1, 0))
         headerPanel.border = CustomLineBorder(BORDER_COLOR, Insets(0, 0, 1, 0))
 
@@ -107,63 +125,63 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         }
     }
 
-    private fun MaterialPaletteForm.initPreviewComponents() {
+    private fun MaterialPaletteUI.initPreviewComponents() {
         previewPanel.border = LineBorder(BORDER_COLOR)
         primaryPreviewTitle.apply { font = font.deriveFont(JBUI.scale(15f)) }
         primaryColorLabel.apply {
             font = font.deriveFont(JBUI.scale(15f))
         }
 
-        primaryPreviewPanel.setCopyAction { group.checkedColor }
-        lightPreviewPanel.setCopyAction { group.checkedColor?.brighten() }
-        darkPreviewPanel.setCopyAction { group.checkedColor?.darken() }
+        val defaultColorType = ColorType.HEX
+        fun JPanel.initListeners(shortcut: String, getColor: () -> Color?) {
+            setCopyAction(defaultColorType, getColor)
+            addMouseListener(object : MouseAdapter() {
+                override fun mouseEntered(e: MouseEvent?) {
+                    this@MaterialPaletteDialog.ui.messageLabel.text =
+                        if (getColor() != null) "Click to copy ($shortcut)" else " "
+                }
+
+                override fun mouseExited(e: MouseEvent?) {
+                    this@MaterialPaletteDialog.ui.messageLabel.text = " "
+                }
+            })
+        }
+
+        primaryPreviewPanel.initListeners("Ctrl+1") { group.checkedColor }
+        lightPreviewPanel.initListeners("Ctrl+2") { group.checkedColor?.brighten() }
+        darkPreviewPanel.initListeners("Ctrl+3") { group.checkedColor?.darken() }
 
         preview(null)
     }
 
-    private fun JPanel.setCopyAction(getColor: () -> Color?) {
-        toolTipText = "Click to copy color"
-        fun copyColor() {
-            getColor()?.let {
-                CopyPasteManager.getInstance().setContents(StringSelection("#${it.hex}"))
-            }
-        }
-
+    private fun JPanel.setCopyAction(colorType: ColorType = ColorType.HEX, getColor: () -> Color?) {
         addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 if (e.button == MouseEvent.BUTTON1 && e.clickCount == 1) {
-                    copyColor()
+                    copyColor(getColor(), colorType)
                 }
             }
         })
 
-        val copyItem = JBMenuItem("Copy as Color Hex", AllIcons.Actions.Copy)
-            .apply {
-                addActionListener { copyColor() }
-            }
-        val copyRGBItem = JBMenuItem("Copy as (R, G, B)", AllIcons.Actions.Copy)
-            .apply {
-                addActionListener {
-                    getColor()?.let {
-                        CopyPasteManager.getInstance()
-                            .setContents(StringSelection("(${it.red}, ${it.green}, ${it.blue})"))
-                    }
-                }
-            }
+        val menuItems = ColorType.values().map { type ->
+            JBMenuItem("Copy as $type").apply { addActionListener { copyColor(getColor(), type) } }
+        }
         componentPopupMenu = JBPopupMenu().apply {
-            add(copyItem)
-            add(copyRGBItem)
+            for (item in menuItems) {
+                add(item)
+            }
             addPopupMenuListener(object : PopupMenuListenerAdapter() {
                 override fun popupMenuWillBecomeVisible(e: PopupMenuEvent) {
-                    val color = getColor()
-                    copyItem.isEnabled = color != null
-                    copyRGBItem.isEnabled = color != null
+                    val hasColor = getColor() != null
+                    for (item in menuItems) {
+                        item.isEnabled = hasColor
+                    }
                 }
             })
         }
     }
 
-    private fun MaterialPaletteForm.syncScroll() {
+    private fun MaterialPaletteUI.syncScroll() {
         leftScrollPane.verticalScrollBar.preferredSize = Dimension(0, 0)
 
         val namesViewport = leftScrollPane.viewport
@@ -176,7 +194,7 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         }
     }
 
-    private fun MaterialPaletteForm.preview(color: Color?) {
+    private fun MaterialPaletteUI.preview(color: Color?) {
         val light = color?.brighten()
         val dark = color?.darken()
         val contentColor = color?.contentColor
@@ -184,27 +202,15 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         val darkContentColor = dark?.contentColor
 
         val hasColor = color != null
-        val paneBorder = if (hasColor) null else LineBorder(BORDER_COLOR)
+        val paneBackground = JBUI.CurrentTheme.CustomFrameDecorations.paneBackground()
         previewPanel.cursor = if (hasColor) {
             Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
         } else {
             Cursor.getDefaultCursor()
         }
-        primaryPreviewPanel.apply {
-            border = paneBorder
-            isOpaque = hasColor
-            background = color
-        }
-        lightPreviewPanel.apply {
-            border = paneBorder
-            isOpaque = hasColor
-            background = light
-        }
-        darkPreviewPanel.apply {
-            border = paneBorder
-            isOpaque = hasColor
-            background = dark
-        }
+        primaryPreviewPanel.background = color ?: Color.BLACK.alphaBlend(paneBackground, 0.2f)
+        lightPreviewPanel.background = light ?: Color.BLACK.alphaBlend(paneBackground, 0.1f)
+        darkPreviewPanel.background = dark ?: Color.BLACK.alphaBlend(paneBackground, 0.3f)
 
         primaryColorLabel.apply {
             text = color?.let { "#${it.hex}" } ?: ""
@@ -222,15 +228,32 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
             foreground = darkContentColor
         }
 
-        primaryPreviewTitle.apply {
-            foreground = contentColor ?: Color.GRAY
+        primaryPreviewTitle.foreground = contentColor ?: JBColor.GRAY
+        lightPreviewTitle.foreground = lightContentColor ?: JBColor.GRAY
+        darkPreviewTitle.foreground = darkContentColor ?: JBColor.GRAY
+    }
+
+    private fun copyColor(color: Color?, colorType: ColorType) {
+        color ?: return
+        CopyPasteManager.getInstance().setContents(StringSelection(colorType.getColorValue(color)))
+        if (currentMessageBalloon == null) {
+            currentMessageBalloon = JBPopupFactory.getInstance().let { factory ->
+                factory.createHtmlTextBalloonBuilder("Copied to clipboard.", MessageType.INFO, null)
+                    .createBalloon().also { balloon ->
+                        balloon.addListener(object : JBPopupListener {
+                            override fun onClosed(event: LightweightWindowEvent) {
+                                currentMessageBalloon = null
+                                alarm.cancelAllRequests()
+                            }
+                        })
+                        Disposer.register(disposable) { balloon.hide() }
+                        val point = Point(ui.previewPanel.width / 2, ui.previewPanel.height - 3)
+                        balloon.show(RelativePoint(ui.previewPanel, point), Balloon.Position.above)
+                    }
+            }
         }
-        lightPreviewTitle.apply {
-            foreground = lightContentColor ?: Color.GRAY
-        }
-        darkPreviewTitle.apply {
-            foreground = darkContentColor ?: Color.GRAY
-        }
+        alarm.cancelAllRequests()
+        alarm.addRequest({ currentMessageBalloon?.hide() }, 3000)
     }
 
     private inner class ResetAction : DialogWrapperAction("Reset") {
@@ -244,18 +267,18 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         private val BORDER_COLOR = JBColor(0xB3B3B3, 0x232323)
         private val BORDER_COLOR_FIXED = JBColor(0xB3B3B3, 0x000000)
 
-        private val sDialogMap = HashMap<Project?, MaterialPaletteDialog>()
+        private val sDialogMap = HashMap<Project, MaterialPaletteDialog>()
 
-        fun show(project: Project?) {
+        fun show(project: Project) {
             val dialog = synchronized(sDialogMap) {
                 sDialogMap.getOrPut(project) {
                     MaterialPaletteDialog(project).apply {
-                        Disposer.register(disposable, Disposable {
+                        Disposer.register(disposable) {
                             synchronized(sDialogMap) {
                                 sDialogMap.remove(project)
                             }
-                        })
-                        project?.let { Disposer.register(it, disposable) }
+                        }
+                        project.let { Disposer.register(it, disposable) }
                     }
                 }
             }
