@@ -1,4 +1,4 @@
-<p align="center"><img src="./icon.svg" width="200" height="200" alt="Material Design Color Palette"></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/YiiGuxing/material-design-color-palette@master/icon.svg" width="200" height="200" alt="Material Design Color Palette"></p>
 <h1 align="center">Material Design Color Palette</h1>
 <p align="center">
 <a href="https://plugins.jetbrains.com/plugin/10869-material-design-color-palette"><img src="https://img.shields.io/badge/JetBrainsPlugin-10869-orange.svg?style=flat-square"></a>
