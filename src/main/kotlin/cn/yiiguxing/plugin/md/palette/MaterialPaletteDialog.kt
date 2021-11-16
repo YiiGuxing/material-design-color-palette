@@ -100,7 +100,9 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
                     ANCHOR_CENTER, FILL_NONE, SIZEPOLICY_FIXED, SIZEPOLICY_FIXED,
                     null, JBDimension(COLOR_BOX_SIZE, COLOR_BOX_SIZE), null
                 )
-                val colorBox = ColorBox(color)
+                val colorBox = ColorBox(color).apply {
+                    addMouseListener(HintHandler(color, name, VARIANTS[column]))
+                }
                 group.add(colorBox)
                 contentPanel.add(colorBox, colorCons)
             }
@@ -133,12 +135,13 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
         }
 
         val defaultColorType = ColorType.HEX
-        fun JPanel.initListeners(shortcut: String, getColor: () -> Color?) {
+        fun JPanel.initListeners(name: String, shortcut: String, getColor: () -> Color?) {
             setCopyAction(defaultColorType, getColor)
             addMouseListener(object : MouseAdapter() {
                 override fun mouseEntered(e: MouseEvent?) {
+                    val color = getColor()
                     this@MaterialPaletteDialog.ui.messageLabel.text =
-                        if (getColor() != null) "Click to copy ($shortcut)" else " "
+                        if (color != null) "$name ${defaultColorType.getColorValue(color)} : Click to copy ($shortcut)" else " "
                 }
 
                 override fun mouseExited(e: MouseEvent?) {
@@ -147,9 +150,9 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
             })
         }
 
-        primaryPreviewPanel.initListeners("Ctrl+1") { group.checkedColor }
-        lightPreviewPanel.initListeners("Ctrl+2") { group.checkedColor?.brighten() }
-        darkPreviewPanel.initListeners("Ctrl+3") { group.checkedColor?.darken() }
+        primaryPreviewPanel.initListeners("Primary", "Ctrl+1") { group.checkedColor }
+        lightPreviewPanel.initListeners("Light", "Ctrl+2") { group.checkedColor?.brighten() }
+        darkPreviewPanel.initListeners("Dark", "Ctrl+3") { group.checkedColor?.darken() }
 
         preview(null)
     }
@@ -259,6 +262,22 @@ class MaterialPaletteDialog(project: Project?) : DialogWrapper(project) {
     private inner class ResetAction : DialogWrapperAction("Reset") {
         override fun doAction(e: ActionEvent) {
             group.checkedBox = null
+        }
+    }
+
+    private inner class HintHandler(
+        color: Color,
+        private val colorName: String,
+        private val variant: String
+    ) : MouseAdapter() {
+        private val color: String = ColorType.HEX.getColorValue(color)
+
+        override fun mouseEntered(e: MouseEvent?) {
+            ui.messageLabel.text = "$colorName - $variant : $color"
+        }
+
+        override fun mouseExited(e: MouseEvent?) {
+            ui.messageLabel.text = " "
         }
     }
 
